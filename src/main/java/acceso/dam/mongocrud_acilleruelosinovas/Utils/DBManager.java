@@ -20,17 +20,17 @@ public class DBManager {
             // Extraer propiedades
             String host = configuration.getProperty("host");
             String port = configuration.getProperty("port");
-            String database = configuration.getProperty("name"); // En MongoDB se llama "database"
+            String database = configuration.getProperty("name");
             String username = configuration.getProperty("username");
             String password = configuration.getProperty("password");
 
-            // Construir la URI de conexión para MongoDB
-            String uri = "mongodb://" + username + ":" + password + "@" + host + ":" + port + "/" + database + "?authSource=admin";
+            // Crear el uri de conexión
+            String uri = "mongodb://" + username + ":" + password + "@" + host + ":" + port + "/?authSource=admin";
 
             // Crear la conexión con MongoDB
             final MongoClient conexion = MongoClients.create(uri);
-
             System.out.println("Conectado correctamente a la BD");
+            return conexion;
 
         } catch (Exception e) {
             System.out.println("Conexión fallida");

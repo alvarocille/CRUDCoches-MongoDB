@@ -14,11 +14,6 @@ import java.util.Objects;
 public class App extends Application {
 
     @Override
-    public void init() throws Exception {
-        super.init();
-    }
-
-    @Override
     public void start(Stage stage) throws Exception {
         AppController controller = new AppController();
 
@@ -33,11 +28,6 @@ public class App extends Application {
         Image icono = new Image(Objects.requireNonNull(R.getImage("coche.png")));
         stage.getIcons().add(icono);
         stage.show();
-    }
-
-    @Override
-    public void stop() throws Exception {
-        super.stop();
     }
 
     public static void main(String[] args) {
