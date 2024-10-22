@@ -60,14 +60,18 @@ public class CocheDAO {
         }
     }
 
-    public void updateCoche(Coche coche, String nuevoModelo, String nuevoTipo) {
+    public void updateCoche(Coche anteriorCoche, Coche nuevoCoche) {
         try {
-            Bson filter = eq("matricula", coche.getMatricula());
-            Bson updateModelo = set("modelo", nuevoModelo);
-            Bson updateTipo = set("tipo", nuevoTipo);
+            Bson filter = eq("matricula", anteriorCoche.getMatricula());
+            Bson updateMatricula = set("matricula", nuevoCoche.getMatricula());
+            Bson updateMarca = set("marca", nuevoCoche.getMarca());
+            Bson updateModelo = set("modelo", nuevoCoche.getModelo());
+            Bson updateTipo = set("tipo", nuevoCoche.getTipo());
 
+            coches.updateOne(filter, updateMarca);
             coches.updateOne(filter, updateModelo);
             coches.updateOne(filter, updateTipo);
+            coches.updateOne(filter, updateMatricula);
         } catch (Exception e) {
             System.err.println("Error al actualizar el coche: " + e.getMessage());
         }
@@ -91,5 +95,19 @@ public class CocheDAO {
             System.err.println("Error al obtener el coche: " + e.getMessage());
         }
         return null;
+    }
+
+    public List<String> getTipos() {
+        List<String> tipos = new ArrayList<>();
+        try {
+            MongoCursor<String> cursor = coches.distinct("tipo", String.class).iterator();
+            while (cursor.hasNext()) {
+                tipos.add(cursor.next());
+            }
+            cursor.close();
+        } catch (Exception e) {
+            System.err.println("Error al obtener los tipos: " + e.getMessage());
+        }
+        return tipos;
     }
 }

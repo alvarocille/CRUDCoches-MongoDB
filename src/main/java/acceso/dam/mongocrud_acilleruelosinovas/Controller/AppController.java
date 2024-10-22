@@ -1,18 +1,26 @@
 package acceso.dam.mongocrud_acilleruelosinovas.Controller;
 
 import acceso.dam.mongocrud_acilleruelosinovas.DAO.CocheDAO;
+import acceso.dam.mongocrud_acilleruelosinovas.Utils.AlertUtils;
 import acceso.dam.mongocrud_acilleruelosinovas.domain.Coche;
+import com.mongodb.MongoException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Optional;
+
+import static acceso.dam.mongocrud_acilleruelosinovas.Utils.AlertUtils.*;
 
 public class AppController {
     @FXML
-    private Button nuevoButton, modificarButton, eliminarButton, limpiarButton;
+    private Button nuevoButton, guardarButton, modificarButton, eliminarButton, limpiarButton;
     @FXML
     private TextField matriculaField, marcaField, modeloField;
     @FXML
@@ -29,38 +37,28 @@ public class AppController {
     private ComboBox<String> tipoComboBox;
 
     private final CocheDAO cocheDAO = new CocheDAO();
+    private Coche cocheSeleccionado;
+    private boolean editando = false;
+
+    private enum Accion {
+        NUEVO, MODIFICAR
+    }
+    private Accion accion;
 
     @FXML
     public void initialize() {
-        colMatricula.setCellValueFactory(new PropertyValueFactory<>("matricula"));
-        colMarca.setCellValueFactory(new PropertyValueFactory<>("marca"));
-        colModelo.setCellValueFactory(new PropertyValueFactory<>("modelo"));
-        colTipo.setCellValueFactory(new PropertyValueFactory<>("tipo"));
+        modoEdicion(editando);
+        configurarColumnas();
         cargarCoches();
+        cargarTipos();
     }
 
     @FXML
-    public void crearNuevo(ActionEvent event) {
-        Coche coche = new Coche(matriculaField.getText(), marcaField.getText(), modeloField.getText(), tipoComboBox.getValue());
-        cargarCoches();
-    }
-
-    @FXML
-    void actualizarCambios(ActionEvent event) {
-
-    }
-
-    @FXML
-    void eliminarCoche(ActionEvent event) {
-
-    }
-
-    @FXML
-    void limpiarDatos(ActionEvent event) {
+    void limpiarDatos() {
         matriculaField.clear();
         marcaField.clear();
         modeloField.clear();
-        tipoComboBox.getItems().clear();
+        tipoComboBox.getSelectionModel().select(null);
     }
 
     public void cargarCoches() {
@@ -74,6 +72,28 @@ public class AppController {
             }
         } catch (Exception e) {
             System.err.println("Error al cargar los coches: " + e.getMessage());
+        }
+    }
+
+    private void configurarColumnas() {
+        colMatricula.prefWidthProperty().bind(tablaCoches.widthProperty().multiply(0.25));
+        colMarca.prefWidthProperty().bind(tablaCoches.widthProperty().multiply(0.25));
+        colModelo.prefWidthProperty().bind(tablaCoches.widthProperty().multiply(0.25));
+        colTipo.prefWidthProperty().bind(tablaCoches.widthProperty().multiply(0.245));
+
+        colMatricula.setCellValueFactory(new PropertyValueFactory<>("matricula"));
+        colMarca.setCellValueFactory(new PropertyValueFactory<>("marca"));
+        colModelo.setCellValueFactory(new PropertyValueFactory<>("modelo"));
+        colTipo.setCellValueFactory(new PropertyValueFactory<>("tipo"));
+    }
+
+    private void cargarTipos() {
+        try {
+            List<String> tipos = cocheDAO.getTipos();
+            tipoComboBox.getItems().clear();
+            tipoComboBox.getItems().addAll(tipos);
+        } catch (Exception e) {
+            System.out.println("Error al rellenar el ComboBox: " + e.getMessage());
         }
     }
 
@@ -104,6 +124,102 @@ public class AppController {
             } catch (Exception e) {
                 System.err.println("Error al insertar los coches: " + e.getMessage());
             }
+    }
+
+    public void seleccionarCoche(Event event) {
+        cocheSeleccionado = tablaCoches.getSelectionModel().getSelectedItem();
+        if (cocheSeleccionado != null) {
+            cargarCoche(cocheSeleccionado);
+        }
+    }
+
+    private void cargarCoche(Coche cocheSeleccionado) {
+        matriculaField.setText(cocheSeleccionado.getMatricula());
+        marcaField.setText(cocheSeleccionado.getMarca());
+        modeloField.setText(cocheSeleccionado.getModelo());
+        tipoComboBox.setValue(cocheSeleccionado.getTipo());
+    }
+
+    @FXML
+    public void crearNuevo(ActionEvent event) {
+        accion = Accion.NUEVO;
+        limpiarDatos();
+        modoEdicion(!editando);
+        editando = !editando;
+    }
+
+    @FXML
+    void actualizarCambios(ActionEvent event) {
+        accion = Accion.MODIFICAR;
+        modoEdicion(!editando);
+        editando = !editando;
+    }
+
+    @FXML
+    void eliminarCoche(ActionEvent event) {
+        Coche coche = tablaCoches.getSelectionModel().getSelectedItem();
+        if (coche == null) {
+            mostrarError("No hay coche seleccionado");
+            return;
+        }
+
+        Optional<ButtonType> respuesta = pedirConfirmacion("Eliminar coche: ¿Estás seguro?");
+        if (respuesta.get().getButtonData() == ButtonBar.ButtonData.CANCEL_CLOSE)
+            return;
+
+        cocheDAO.deleteCoche(coche);
+        mostrarConfirmacion("Coche eliminado con éxito");
+        cargarCoches();
+    }
+
+    private void modoEdicion(boolean activar) {
+        if (!activar || accion == Accion.MODIFICAR) {
+            nuevoButton.setDisable(activar);
+        }
+        if (!activar || accion == Accion.NUEVO) {
+            modificarButton.setDisable(activar);
+        }
+
+        guardarButton.setDisable(!activar);
+        eliminarButton.setDisable(activar);
+
+        matriculaField.setEditable(activar);
+        marcaField.setEditable(activar);
+        modeloField.setEditable(activar);
+        tipoComboBox.setEditable(activar);
+
+        tablaCoches.setDisable(activar);
+    }
+
+    @FXML
+    public void guardarCoche(Event event) {
+        String matricula = matriculaField.getText();
+        if (matricula.isEmpty()) {
+            mostrarError("La matricula es un campo obligatorio");
+            return;
+        }
+        String marca = marcaField.getText();
+        String modelo = modeloField.getText();
+        String tipo = tipoComboBox.getSelectionModel().getSelectedItem();
+        Coche coche = new Coche(matricula, marca, modelo, tipo);
+
+        try {
+            switch (accion) {
+                case NUEVO:
+                    cocheDAO.insertCoche(coche);
+                    break;
+                case MODIFICAR:
+                    cocheDAO.updateCoche(cocheSeleccionado, coche);
+                    break;
+            }
+            mostrarConfirmacion("Coche guardado con éxito");
+            cargarCoches();
+            modoEdicion(false);
+        } catch (MongoException e) {
+            mostrarError("No se ha guardado el coche.");
+        }
+        cargarTipos();
+        limpiarDatos();
     }
 
 
