@@ -12,61 +12,57 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" prefHeight="733.0" prefWidth="671.0" spacing="40.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1">
-   <children>
-      <GridPane hgap="10" vgap="10">
-         <columnConstraints>
-            <ColumnConstraints minWidth="100.0" />
-            <ColumnConstraints />
-         </columnConstraints>
-         <rowConstraints>
-            <RowConstraints minHeight="30.0" />
-            <RowConstraints minHeight="30.0" />
-            <RowConstraints minHeight="30.0" />
-            <RowConstraints minHeight="30.0" />
-         </rowConstraints>
-         <children>
-            <Label text="Matricula" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-            <TextField fx:id="matriculaField" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-            <Label text="Marca" GridPane.rowIndex="1" />
-            <TextField fx:id="marcaField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <Label text="Modelo" GridPane.rowIndex="2" />
-            <TextField fx:id="modeloField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <Label text="Tipo" GridPane.rowIndex="3" />
-            <ComboBox fx:id="tipoComboBox" editable="true" prefHeight="31.0" prefWidth="188.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-         </children>
-      </GridPane>
-      <GridPane hgap="10.0" vgap="10">
-         <children>
-            <Button fx:id="nuevoButton" onAction="#crearNuevo" text="Nuevo" />
-            <Button fx:id="limpiarButton" onAction="#limpiarDatos" text="Limpiar" GridPane.columnIndex="4" />
-            <Button fx:id="modificarButton" onAction="#actualizarCambios" text="Modificar" GridPane.columnIndex="2" />
-            <Button fx:id="eliminarButton" onAction="#eliminarCoche" text="Eliminar" GridPane.columnIndex="3" />
-            <Button fx:id="guardarButton" disable="true" onAction="#guardarCoche" text="Guardar" GridPane.columnIndex="1" />
-         </children>
-         <columnConstraints>
-            <ColumnConstraints />
-            <ColumnConstraints />
-            <ColumnConstraints />
-            <ColumnConstraints />
-            <ColumnConstraints />
-            <ColumnConstraints />
-            <ColumnConstraints />
-         </columnConstraints>
-         <rowConstraints>
-            <RowConstraints />
-         </rowConstraints>
-      </GridPane>
-      <TableView fx:id="tablaCoches" onMouseClicked="#seleccionarCoche" VBox.vgrow="ALWAYS">
-         <columns>
-            <TableColumn fx:id="colMatricula" prefWidth="75.0" text="Matrícula" />
-            <TableColumn fx:id="colMarca" prefWidth="75.0" text="Marca" />
-            <TableColumn fx:id="colModelo" prefWidth="75.0" text="Modelo" />
-            <TableColumn fx:id="colTipo" prefWidth="75.0" text="Tipo" />
-         </columns>
-      </TableView>
-   </children>
+<VBox alignment="CENTER" prefHeight="733.0" prefWidth="671.0" spacing="40.0" xmlns="http://javafx.com/javafx/22"
+      xmlns:fx="http://javafx.com/fxml/1">
    <padding>
-      <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
+      <Insets bottom="40.0" left="40.0" right="40.0" top="40.0"/>
    </padding>
+   <GridPane hgap="10" vgap="10">
+      <columnConstraints>
+         <ColumnConstraints minWidth="100.0"/>
+         <ColumnConstraints/>
+      </columnConstraints>
+      <rowConstraints>
+         <RowConstraints minHeight="30.0"/>
+         <RowConstraints minHeight="30.0"/>
+         <RowConstraints minHeight="30.0"/>
+         <RowConstraints minHeight="30.0"/>
+      </rowConstraints>
+      <Label text="Matricula" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+      <TextField fx:id="matriculaField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+      <Label text="Marca" GridPane.rowIndex="1"/>
+      <TextField fx:id="marcaField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+      <Label text="Modelo" GridPane.rowIndex="2"/>
+      <TextField fx:id="modeloField" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+      <Label text="Tipo" GridPane.rowIndex="3"/>
+      <ComboBox fx:id="tipoComboBox" editable="true" prefHeight="31.0" prefWidth="188.0" GridPane.columnIndex="1"
+                GridPane.rowIndex="3"/>
+   </GridPane>
+   <GridPane hgap="10.0" vgap="10">
+      <columnConstraints>
+         <ColumnConstraints/>
+         <ColumnConstraints/>
+         <ColumnConstraints/>
+         <ColumnConstraints/>
+         <ColumnConstraints/>
+         <ColumnConstraints/>
+         <ColumnConstraints/>
+      </columnConstraints>
+      <rowConstraints>
+         <RowConstraints/>
+      </rowConstraints>
+      <Button fx:id="nuevoButton" onAction="#crearNuevo" text="Nuevo"/>
+      <Button fx:id="limpiarButton" onAction="#limpiarDatos" text="Limpiar" GridPane.columnIndex="4"/>
+      <Button fx:id="modificarButton" onAction="#actualizarCambios" text="Modificar" GridPane.columnIndex="2"/>
+      <Button fx:id="eliminarButton" onAction="#eliminarCoche" text="Eliminar" GridPane.columnIndex="3"/>
+      <Button fx:id="guardarButton" disable="true" onAction="#guardarCoche" text="Guardar" GridPane.columnIndex="1"/>
+   </GridPane>
+   <TableView fx:id="tablaCoches" onMouseClicked="#seleccionarCoche" VBox.vgrow="ALWAYS">
+      <columns>
+         <TableColumn fx:id="colMatricula" prefWidth="75.0" text="Matrícula"/>
+         <TableColumn fx:id="colMarca" prefWidth="75.0" text="Marca"/>
+         <TableColumn fx:id="colModelo" prefWidth="75.0" text="Modelo"/>
+         <TableColumn fx:id="colTipo" prefWidth="75.0" text="Tipo"/>
+      </columns>
+   </TableView>
 </VBox>

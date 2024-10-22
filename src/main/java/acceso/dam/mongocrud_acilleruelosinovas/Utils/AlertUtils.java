@@ -54,13 +54,23 @@ public class AlertUtils {
         alerta.show();
     }
 
+    /**
+     * Pide confirmación al usuario con el mensaje proporcionado.
+     *
+     * @param mensaje el mensaje que se mostrará en la alerta de confirmación.
+     * @return un {@code Optional<ButtonType>} que contiene la respuesta del usuario.
+     */
     public static Optional<ButtonType> pedirConfirmacion(String mensaje) {
         Alert alerta = new Alert(Alert.AlertType.CONFIRMATION);
         alerta.setContentText(mensaje);
-        Optional<ButtonType> respuesta = alerta.showAndWait();
-        return respuesta;
+        return alerta.showAndWait();
     }
 
+    /**
+     * Muestra un aviso con el mensaje proporcionado.
+     *
+     * @param mensaje el mensaje del aviso que se mostrará en la alerta.
+     */
     public static void mostrarAviso(String mensaje) {
         Alert alerta = new Alert(Alert.AlertType.INFORMATION);
         alerta.setTitle("Aviso.");

@@ -14,21 +14,44 @@ import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.set;
+import static javafx.application.Platform.exit;
 
+/**
+ * Clase Data Access Object (DAO) para gestionar la colección de coches
+ * en la base de datos MongoDB.
+ *
+ * <p>Esta clase proporciona métodos para realizar operaciones CRUD (Crear,
+ * Leer, Actualizar, Eliminar) sobre los documentos de la colección "coches".</p>
+ */
 public class CocheDAO {
     private MongoCollection<Document> coches;
 
+    /**
+     * Constructor que inicializa la conexión a la base de datos y
+     * crea la colección “coches” si no existe.
+     */
     public CocheDAO() {
         try {
-            MongoClient conDB = DBManager.conectar();
+            DBManager bd = new DBManager();
+            MongoClient conDB = bd.getConexion();
+            assert conDB != null;
             MongoDatabase db = conDB.getDatabase("taller");
             db.createCollection("coches");
             this.coches = db.getCollection("coches");
+        } catch (NullPointerException e) {
+            System.err.println("Error al conectarse a la base de datos: " + e.getMessage());
+            exit();
         } catch (Exception e) {
             System.err.println("Error al inicializar CRUDCoche: " + e.getMessage());
         }
     }
 
+    /**
+     * Obtiene todos los coches de la colección.
+     *
+     * @return una lista de objetos {@link Coche} que representan
+     *         todos los coches en la colección.
+     */
     public List<Coche> obtenerTodosLosCoches() {
         List<Coche> cochesList = new ArrayList<>();
         if (this.coches != null) {
@@ -48,6 +71,11 @@ public class CocheDAO {
         return cochesList;
     }
 
+    /**
+     * Inserta un nuevo coche en la colección.
+     *
+     * @param coche el objeto {@link Coche} a insertar en la colección.
+     */
     public void insertCoche(Coche coche) {
         try {
             Document doc = new Document("matricula", coche.getMatricula())
@@ -60,6 +88,12 @@ public class CocheDAO {
         }
     }
 
+    /**
+     * Actualiza un coche existente en la colección.
+     *
+     * @param anteriorCoche el coche que se desea actualizar.
+     * @param nuevoCoche    el nuevo objeto {@link Coche} con los datos actualizados.
+     */
     public void updateCoche(Coche anteriorCoche, Coche nuevoCoche) {
         try {
             Bson filter = eq("matricula", anteriorCoche.getMatricula());
@@ -77,6 +111,11 @@ public class CocheDAO {
         }
     }
 
+    /**
+     * Elimina un coche de la colección.
+     *
+     * @param coche el objeto {@link Coche} que se desea eliminar.
+     */
     public void deleteCoche(Coche coche) {
         try {
             coches.deleteOne(eq("matricula", coche.getMatricula()));
@@ -85,6 +124,12 @@ public class CocheDAO {
         }
     }
 
+    /**
+     * Obtiene un coche de la colección según su matrícula.
+     *
+     * @param matricula la matrícula del coche a buscar.
+     * @return el objeto {@link Coche} encontrado o null si no se encuentra.
+     */
     public Coche getCocheByMatricula(String matricula) {
         try {
             Document doc = coches.find(eq("matricula", matricula)).first();
@@ -97,6 +142,11 @@ public class CocheDAO {
         return null;
     }
 
+    /**
+     * Obtiene una lista de tipos de coches distintos almacenados en la colección.
+     *
+     * @return una lista de cadenas que representan los tipos de coches.
+     */
     public List<String> getTipos() {
         List<String> tipos = new ArrayList<>();
         try {
