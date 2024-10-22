@@ -12,11 +12,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
 import static acceso.dam.mongocrud_acilleruelosinovas.Utils.AlertUtils.*;
+import static acceso.dam.mongocrud_acilleruelosinovas.Utils.Validador.validarMatricula;
+import static acceso.dam.mongocrud_acilleruelosinovas.Utils.Validador.validarTextoNoVacio;
 
 public class AppController {
     @FXML
@@ -170,6 +171,8 @@ public class AppController {
         cocheDAO.deleteCoche(coche);
         mostrarConfirmacion("Coche eliminado con éxito");
         cargarCoches();
+        limpiarDatos();
+        cargarTipos();
     }
 
     private void modoEdicion(boolean activar) {
@@ -194,13 +197,26 @@ public class AppController {
     @FXML
     public void guardarCoche(Event event) {
         String matricula = matriculaField.getText();
-        if (matricula.isEmpty()) {
-            mostrarError("La matricula es un campo obligatorio");
+         if (!validarTextoNoVacio(matricula)) {
+            mostrarError("La matricula es un campo obligatorio.");
+            return;
+        } else if (!validarMatricula(matricula)) {
+            mostrarError("La matricula debe de tener formato NNNNXXX siendo N un dígito y X una letra.");
             return;
         }
         String marca = marcaField.getText();
+        if (!validarTextoNoVacio(marca)) {
+            mostrarError("La marca es un campo obligatorio.");
+            return;
+        }
         String modelo = modeloField.getText();
+        if (!validarTextoNoVacio(modelo)) {
+            mostrarAviso("Se va a registrar el coche sin modelo.");
+        }
         String tipo = tipoComboBox.getSelectionModel().getSelectedItem();
+        if (!validarTextoNoVacio(tipo)) {
+            mostrarAviso("Se va a registrar el coche sin tipo.");
+        }
         Coche coche = new Coche(matricula, marca, modelo, tipo);
 
         try {

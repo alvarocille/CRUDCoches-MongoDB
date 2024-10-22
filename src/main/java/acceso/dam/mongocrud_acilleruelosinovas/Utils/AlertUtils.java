@@ -61,11 +61,11 @@ public class AlertUtils {
         return respuesta;
     }
 
-/*    public static void mostrarAviso(String mensaje) {
+    public static void mostrarAviso(String mensaje) {
         Alert alerta = new Alert(Alert.AlertType.INFORMATION);
         alerta.setTitle("Aviso.");
         alerta.setHeaderText(null);
         alerta.setContentText(mensaje);
-        alerta.show();
-    }*/
+        alerta.showAndWait();
+    }
 }
