@@ -9,6 +9,12 @@ import java.util.regex.Pattern;
 public class Validador {
 
     /**
+     * Constructor predeterminado para la clase {@code Validador}.
+     * Privado para evitar que su instancia, ya que solo contiene métodos estáticos.
+     */
+    private Validador() {}
+
+    /**
      * Valida que un campo de texto no esté vacío.
      *
      * @param texto el texto a validar.

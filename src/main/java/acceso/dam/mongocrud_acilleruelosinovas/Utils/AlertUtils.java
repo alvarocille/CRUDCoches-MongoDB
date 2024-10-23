@@ -14,6 +14,12 @@ import java.util.Optional;
 public class AlertUtils {
 
     /**
+     * Constructor predeterminado para la clase {@code AlertUtils}.
+     * Privado para evitar que su instancia, ya que solo contiene métodos estáticos.
+     */
+    private AlertUtils() {}
+
+    /**
      * Muestra una alerta de error con el mensaje proporcionado.
      *
      * @param mensaje el mensaje de error que se mostrará en la alerta.

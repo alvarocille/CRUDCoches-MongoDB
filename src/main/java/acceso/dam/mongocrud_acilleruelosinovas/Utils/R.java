@@ -11,6 +11,12 @@ import java.net.URL;
 public class R {
 
     /**
+     * Constructor predeterminado para la clase {@code R}.
+     * Privado para evitar que su instancia, ya que solo contiene métodos estáticos.
+     */
+    private R() {}
+
+    /**
      * Obtiene un {@code InputStream} para una imagen específica ubicada en el directorio de imágenes.
      *
      * @param name el nombre del archivo de imagen que se desea obtener.

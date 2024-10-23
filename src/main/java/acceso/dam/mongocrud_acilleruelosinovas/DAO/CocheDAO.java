@@ -28,8 +28,10 @@ public class CocheDAO {
     public DBManager manage;
 
     /**
-     * Constructor que inicializa la conexión a la base de datos y
+     * Constructor que recibe el manejador de la base de datos, instancia la conexión y
      * crea la colección “coches” si no existe.
+     *
+     * @param bd El manejador de la conexión a la base de datos.
      */
     public CocheDAO(DBManager bd) {
         try {
