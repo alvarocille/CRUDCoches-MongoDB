@@ -63,6 +63,7 @@ public class DBManager {
         if (conexion != null) {
             conexion.close();
         }
+        System.out.println("Desconectando de la base de datos...");
     }
 
     /**

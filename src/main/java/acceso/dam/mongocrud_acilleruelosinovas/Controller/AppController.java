@@ -2,6 +2,7 @@ package acceso.dam.mongocrud_acilleruelosinovas.Controller;
 
 import acceso.dam.mongocrud_acilleruelosinovas.DAO.CocheDAO;
 import acceso.dam.mongocrud_acilleruelosinovas.Utils.AlertUtils;
+import acceso.dam.mongocrud_acilleruelosinovas.Utils.DBManager;
 import acceso.dam.mongocrud_acilleruelosinovas.domain.Coche;
 import com.mongodb.MongoException;
 import javafx.collections.FXCollections;
@@ -20,9 +21,8 @@ import static acceso.dam.mongocrud_acilleruelosinovas.Utils.Validador.validarMat
 import static acceso.dam.mongocrud_acilleruelosinovas.Utils.Validador.validarTextoNoVacio;
 
 /**
- * Controlador de la aplicación encargado de gestionar las acciones relacionadas
- * con los coches. Incluye la gestión de la interfaz de usuario, así como la
- * interacción con la base de datos mediante {@link CocheDAO}.
+ * El controlador principal de la aplicación que gestiona la interacción de la interfaz de usuario
+ * con los coches, así como las operaciones CRUD sobre la base de datos MongoDB mediante {@link CocheDAO}.
  */
 public class AppController {
     @FXML
@@ -42,9 +42,19 @@ public class AppController {
     @FXML
     private ComboBox<String> tipoComboBox;
 
-    private final CocheDAO cocheDAO = new CocheDAO();
+    private final CocheDAO cocheDAO;
     private Coche cocheSeleccionado;
     private boolean editando = false;
+
+    /**
+     * Constructor del controlador, que inicializa la instancia de {@link CocheDAO}
+     * para interactuar con la base de datos.
+     *
+     * @param dbmanager El manejador de la conexión a la base de datos.
+     */
+    public AppController(DBManager dbmanager) {
+        cocheDAO = new CocheDAO(dbmanager);
+    }
 
     private enum Accion {
         NUEVO, MODIFICAR
@@ -52,8 +62,8 @@ public class AppController {
     private Accion accion;
 
     /**
-     * Inicializa los componentes de la interfaz de usuario y carga los datos
-     * necesarios, como la lista de coches y los tipos de vehículos disponibles.
+     * Inicializa la interfaz de usuario, configurando las columnas de la tabla,
+     * cargando los coches y los tipos de vehículos.
      */
     @FXML
     public void initialize() {
@@ -64,7 +74,7 @@ public class AppController {
     }
 
     /**
-     * Limpia los campos de entrada de la interfaz de usuario, restableciendo su estado inicial.
+     * Limpia los campos de entrada de texto y restablece el ComboBox, devolviéndolos a su estado inicial.
      */
     @FXML
     void limpiarDatos() {
@@ -75,7 +85,7 @@ public class AppController {
     }
 
     /**
-     * Carga la lista de coches desde la base de datos y la muestra en la tabla.
+     * Carga la lista de coches desde la base de datos y los muestra en la tabla.
      * Si no hay coches, genera datos de ejemplo.
      */
     public void cargarCoches() {
@@ -93,7 +103,7 @@ public class AppController {
     }
 
     /**
-     * Configura las columnas de la tabla de coches.
+     * Configura las columnas de la tabla para mostrar las propiedades de los coches.
      */
     private void configurarColumnas() {
         colMatricula.prefWidthProperty().bind(tablaCoches.widthProperty().multiply(0.25));
@@ -108,7 +118,7 @@ public class AppController {
     }
 
     /**
-     * Carga los tipos de vehículos disponibles desde la base de datos en el ComboBox.
+     * Carga los tipos de vehículos desde la base de datos en el ComboBox correspondiente.
      */
     private void cargarTipos() {
         try {
@@ -121,9 +131,9 @@ public class AppController {
     }
 
     /**
-     * Muestra el coche que el usuario ha seleccionado en la tabla.
+     * Muestra los detalles del coche seleccionado en los campos de texto.
      *
-     * @param event Evento de selección.
+     * @param event Evento de selección de coche en la tabla.
      */
     public void seleccionarCoche(Event event) {
         cocheSeleccionado = tablaCoches.getSelectionModel().getSelectedItem();
@@ -133,7 +143,7 @@ public class AppController {
     }
 
     /**
-     * Carga los datos de un coche seleccionado en los campos de entrada.
+     * Carga los datos del coche seleccionado en los campos de entrada.
      *
      * @param cocheSeleccionado El coche seleccionado.
      */
@@ -147,7 +157,7 @@ public class AppController {
     /**
      * Habilita el modo de edición para crear un nuevo coche.
      *
-     * @param event Evento de acción.
+     * @param event Evento de acción para crear un nuevo coche.
      */
     @FXML
     public void crearNuevo(ActionEvent event) {
@@ -158,9 +168,9 @@ public class AppController {
     }
 
     /**
-     * Habilita el modo de edición para modificar un coche existente.
+     * Habilita el modo de edición para modificar los detalles del coche seleccionado.
      *
-     * @param event Evento de acción.
+     * @param event Evento de acción para modificar un coche.
      */
     @FXML
     void actualizarCambios(ActionEvent event) {
@@ -172,7 +182,7 @@ public class AppController {
     /**
      * Elimina el coche seleccionado de la base de datos.
      *
-     * @param event Evento de acción.
+     * @param event Evento de acción para eliminar un coche.
      */
     @FXML
     void eliminarCoche(ActionEvent event) {
@@ -220,18 +230,18 @@ public class AppController {
     }
 
     /**
-     * Guarda un coche nuevo o actualizado en la base de datos.
+     * Valida y guarda los datos del coche, ya sea uno nuevo o uno modificado, en la base de datos.
      *
-     * @param event Evento de acción.
+     * @param event Evento de acción para guardar un coche.
      */
     @FXML
     public void guardarCoche(Event event) {
         String matricula = matriculaField.getText();
         if (!validarTextoNoVacio(matricula)) {
-            mostrarError("La matricula es un campo obligatorio.");
+            mostrarError("La matrícula es un campo obligatorio.");
             return;
         } else if (!validarMatricula(matricula)) {
-            mostrarError("La matricula debe de tener formato 'NNNNXXX' siendo N un dígito y X una letra.");
+            mostrarError("La matrícula debe tener el formato 'NNNNXXX', donde N es un dígito y X es una letra.");
             return;
         }
 
@@ -255,27 +265,20 @@ public class AppController {
 
         try {
             switch (accion) {
-                case NUEVO:
-                    cocheDAO.insertCoche(coche);
-                    break;
-                case MODIFICAR:
-                    cocheDAO.updateCoche(cocheSeleccionado, coche);
-                    break;
+                case NUEVO -> cocheDAO.insertCoche(coche);
+                case MODIFICAR -> cocheDAO.updateCoche(cocheSeleccionado, coche);
             }
-            mostrarConfirmacion("Coche guardado con éxito");
-            cargarCoches();
-            limpiarDatos();
-            cargarTipos();
-            modoEdicion(false);
         } catch (MongoException e) {
             AlertUtils.mostrarError("Error al guardar el coche: " + e.getMessage());
         }
+
+        modoEdicion(false);
+        cargarCoches();
     }
 
     /**
-     * Genera datos de ejemplo en la base de datos de coches.
+     * Genera datos de ejemplo de coches para la tabla.
      */
-    @FXML
     public void generarDatos() {
         try {
             Coche coche1 = new Coche("1122BBC", "Renault", "Clio", "Familiar");
@@ -303,4 +306,5 @@ public class AppController {
             System.err.println("Error al insertar los coches: " + e.getMessage());
         }
     }
+
 }

@@ -25,15 +25,16 @@ import static javafx.application.Platform.exit;
  */
 public class CocheDAO {
     private MongoCollection<Document> coches;
+    public DBManager manage;
 
     /**
      * Constructor que inicializa la conexión a la base de datos y
      * crea la colección “coches” si no existe.
      */
-    public CocheDAO() {
+    public CocheDAO(DBManager bd) {
         try {
-            DBManager bd = new DBManager();
-            MongoClient conDB = bd.getConexion();
+            manage = bd;
+            MongoClient conDB = manage.getConexion();
             assert conDB != null;
             MongoDatabase db = conDB.getDatabase("taller");
             db.createCollection("coches");
