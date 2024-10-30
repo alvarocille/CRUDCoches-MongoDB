@@ -30,7 +30,7 @@ Este proyecto es una aplicación de escritorio desarrollada en **Java** utilizan
 1. Clona este repositorio en tu máquina local:
    ```bash
    git clone https://github.com/alvarocille/CRUDCoches-MongoDB.git
-2. Abre el proyecto en un IDE (IntelliJ Idea).
+2. Abre el proyecto en un IDE (IntelliJ Idea o VSCode).
 3. Compila el proyecto y ejecuta la clase Main.
 
 ## Cambios Pendientes
