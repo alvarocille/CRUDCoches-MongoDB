@@ -1,20 +1,10 @@
 package acceso.dam.mongocrud_acilleruelosinovas.DAO;
 
-import acceso.dam.mongocrud_acilleruelosinovas.Utils.DBManager;
 import acceso.dam.mongocrud_acilleruelosinovas.domain.Coche;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
-import org.bson.conversions.Bson;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Updates.set;
-import static javafx.application.Platform.exit;
+import java.util.*;
 
 /**
  * Clase Data Access Object (DAO) para gestionar la colección de coches
@@ -24,141 +14,105 @@ import static javafx.application.Platform.exit;
  * Leer, Actualizar, Eliminar) sobre los documentos de la colección "coches".</p>
  */
 public class CocheDAO {
-    private MongoCollection<Document> coches;
-    public DBManager manage;
-
-    /**
-     * Constructor que recibe el manejador de la base de datos, instancia la conexión y
-     * crea la colección “coches” si no existe.
-     *
-     * @param bd El manejador de la conexión a la base de datos.
-     */
-    public CocheDAO(DBManager bd) {
-        try {
-            manage = bd;
-            MongoClient conDB = manage.getConexion();
-            assert conDB != null;
-            MongoDatabase db = conDB.getDatabase("taller");
-            db.createCollection("coches");
-            this.coches = db.getCollection("coches");
-        } catch (NullPointerException e) {
-            System.err.println("Error al conectarse a la base de datos: " + e.getMessage());
-            exit();
-        } catch (Exception e) {
-            System.err.println("Error al inicializar CRUDCoche: " + e.getMessage());
-        }
-    }
 
     /**
      * Obtiene todos los coches de la colección.
      *
+     * @param session la sesión de Hibernate usada para interactuar con la base de datos.
      * @return una lista de objetos {@link Coche} que representan
      *         todos los coches en la colección.
      */
-    public List<Coche> obtenerTodosLosCoches() {
-        List<Coche> cochesList = new ArrayList<>();
-        if (this.coches != null) {
-            try (MongoCursor<Document> cursor = this.coches.find().iterator()) {
-                while (cursor.hasNext()) {
-                    Document doc = cursor.next();
-                    Coche coche = new Coche(doc.getString("matricula"),
-                            doc.getString("marca"),
-                            doc.getString("modelo"),
-                            doc.getString("tipo"));
-                    cochesList.add(coche);
-                }
-            } catch (Exception e) {
-                System.err.println("Error al obtener los coches: " + e.getMessage());
-            }
+    public List<Coche> obtenerTodosLosCoches(Session session) {
+        Transaction transaction = null;
+        List<Coche> coches = null;
+        try {
+            transaction = session.beginTransaction();
+            coches = session.createQuery("from Coche", Coche.class).list();
+            transaction.commit();
+        } catch (Exception e) {
+            if(transaction != null)
+                transaction.rollback();
         }
-        return cochesList;
+        return Objects.requireNonNullElse(coches, Collections.emptyList());
+
     }
 
     /**
      * Inserta un nuevo coche en la colección.
      *
      * @param coche el objeto {@link Coche} a insertar en la colección.
+     * @param session la sesión de Hibernate usada para interactuar con la base de datos.
      */
-    public void insertCoche(Coche coche) {
-        try {
-            Document doc = new Document("matricula", coche.getMatricula())
-                    .append("marca", coche.getMarca())
-                    .append("modelo", coche.getModelo())
-                    .append("tipo", coche.getTipo());
-            coches.insertOne(doc);
+    public void insertCoche(Coche coche, Session session) {
+        Transaction transaction = null;
+        try{
+            transaction = session.beginTransaction();
+            session.save(coche);
+            transaction.commit();
         } catch (Exception e) {
-            System.err.println("Error al insertar el coche: " + e.getMessage());
+            if(transaction != null)
+                transaction.rollback();
         }
     }
 
     /**
      * Actualiza un coche existente en la colección.
      *
-     * @param anteriorCoche el coche que se desea actualizar.
-     * @param nuevoCoche    el nuevo objeto {@link Coche} con los datos actualizados.
+     * @param coche el nuevo objeto {@link Coche} con los datos actualizados.
+     * @param session la sesión de Hibernate usada para interactuar con la base de datos.
      */
-    public void updateCoche(Coche anteriorCoche, Coche nuevoCoche) {
-        try {
-            Bson filter = eq("matricula", anteriorCoche.getMatricula());
-            Bson updateMatricula = set("matricula", nuevoCoche.getMatricula());
-            Bson updateMarca = set("marca", nuevoCoche.getMarca());
-            Bson updateModelo = set("modelo", nuevoCoche.getModelo());
-            Bson updateTipo = set("tipo", nuevoCoche.getTipo());
-
-            coches.updateOne(filter, updateMarca);
-            coches.updateOne(filter, updateModelo);
-            coches.updateOne(filter, updateTipo);
-            coches.updateOne(filter, updateMatricula);
+    public void updateCoche(Coche coche, Session session) {
+        if (coche == null || session == null) {
+            throw new IllegalArgumentException("El coche y la sesión no pueden ser nulos.");
+        }
+        Transaction transaction = null;
+        try{
+            transaction = session.beginTransaction();
+            session.merge(coche);
+            transaction.commit();
         } catch (Exception e) {
-            System.err.println("Error al actualizar el coche: " + e.getMessage());
+            if(transaction != null)
+                transaction.rollback();
         }
     }
 
     /**
      * Elimina un coche de la colección.
      *
-     * @param coche el objeto {@link Coche} que se desea eliminar.
+     * @param id el id del coche {@link Coche} que se desea eliminar.
+     * @param session la sesión de Hibernate usada para interactuar con la base de datos.
      */
-    public void deleteCoche(Coche coche) {
+    public void deleteCoche(int id, Session session) {
+        Transaction transaction = null;
         try {
-            coches.deleteOne(eq("matricula", coche.getMatricula()));
+            transaction = session.beginTransaction();
+            Coche coche = session.get(Coche.class, id);
+            session.delete(coche);
+            transaction.commit();
         } catch (Exception e) {
-            System.err.println("Error al eliminar el coche: " + e.getMessage());
+            if(transaction != null)
+                transaction.rollback();
         }
-    }
-
-    /**
-     * Obtiene un coche de la colección según su matrícula.
-     *
-     * @param matricula la matrícula del coche a buscar.
-     * @return el objeto {@link Coche} encontrado o null si no se encuentra.
-     */
-    public Coche getCocheByMatricula(String matricula) {
-        try {
-            Document doc = coches.find(eq("matricula", matricula)).first();
-            if (doc != null) {
-                return new Coche(doc.getString("matricula"), doc.getString("marca"), doc.getString("modelo"), doc.getString("tipo"));
-            }
-        } catch (Exception e) {
-            System.err.println("Error al obtener el coche: " + e.getMessage());
-        }
-        return null;
     }
 
     /**
      * Obtiene una lista de tipos de coches distintos almacenados en la colección.
      *
      * @return una lista de cadenas que representan los tipos de coches.
+     * @param session la sesión de Hibernate usada para interactuar con la base de datos.
      */
-    public List<String> getTipos() {
-        List<String> tipos = new ArrayList<>();
+    public List<String> getTipos(Session session) {
+        List<String> tipos = null;
+        Transaction transaction = null;
         try {
-            MongoCursor<String> cursor = coches.distinct("tipo", String.class).iterator();
-            while (cursor.hasNext()) {
-                tipos.add(cursor.next());
-            }
-            cursor.close();
+            transaction = session.beginTransaction();
+
+            tipos = session.createQuery("SELECT DISTINCT tipo FROM Coche WHERE tipo IS NOT NULL AND tipo <> ''", String.class).list();
+            transaction.commit();
         } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
             System.err.println("Error al obtener los tipos: " + e.getMessage());
         }
         return tipos;

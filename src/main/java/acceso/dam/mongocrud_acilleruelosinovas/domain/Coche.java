@@ -1,20 +1,48 @@
 package acceso.dam.mongocrud_acilleruelosinovas.domain;
 
+import javax.persistence.*;
+
 /**
  * Clase que representa un coche con atributos como matrícula, marca, modelo y tipo.
- * Coincide con la colección coches de la base de datos.
+ * Coincide con la colección coches de la base de datos e implementa Hibernate.
  *
  * <p>Esta clase proporciona métodos para acceder y modificar los atributos de un coche.</p>
  */
+@Entity
+@Table(name = "coche", indexes = {
+        @Index(name = "idx_coche_id", columnList = "id")
+}, uniqueConstraints = {
+        @UniqueConstraint(name = "uc_coche_matricula", columnNames = {"matricula"})
+})
 public class Coche {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
 
+    private int id;
     private String matricula;
     private String marca;
     private String modelo;
     private String tipo;
 
     /**
-     * Constructor que inicializa un objeto {@link Coche} con los valores especificados.
+     * Constructor que inicializa un objeto {@link Coche} con los valores especificados (con id).
+     *
+     * @param id        el id del coche en la base de datos.
+     * @param matricula la matrícula del coche.
+     * @param marca     la marca del coche.
+     * @param modelo    el modelo del coche.
+     * @param tipo      el tipo del coche (por ejemplo, SUV, familiar, etc.).
+     */
+    public Coche(int id, String matricula, String marca, String modelo, String tipo) {
+        this.id = id;
+        this.matricula = matricula;
+        this.marca = marca;
+        this.modelo = modelo;
+        this.tipo = tipo;
+    }
+
+    /**
+     * Constructor que inicializa un objeto {@link Coche} con los valores especificados (id autoincrementado).
      *
      * @param matricula la matrícula del coche.
      * @param marca     la marca del coche.
@@ -26,6 +54,31 @@ public class Coche {
         this.marca = marca;
         this.modelo = modelo;
         this.tipo = tipo;
+    }
+
+    /**
+     * Constructor vacío que inicializa un objeto {@link Coche} con valores por defecto.
+     * Necesario para el correcto funcionamiento de Hibernate.
+     */
+    public Coche() {
+    }
+
+    /**
+     * Obtiene el número de identificación del coche.
+     *
+     * @return la id del coche.
+     */
+    public int getId() {
+        return id;
+    }
+
+    /**
+     * Establece la id del coche.
+     *
+     * @param id la nueva id del coche.
+     */
+    public void setId(int id) {
+        this.id = id;
     }
 
     /**
@@ -108,6 +161,6 @@ public class Coche {
      */
     @Override
     public String toString() {
-        return matricula + " - " + marca + " " + modelo + " (" + tipo + ")";
+        return id + " = " + matricula + " - " + marca + " " + modelo + " (" + tipo + ")";
     }
 }

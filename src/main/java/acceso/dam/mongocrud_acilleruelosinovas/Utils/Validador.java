@@ -1,5 +1,9 @@
 package acceso.dam.mongocrud_acilleruelosinovas.Utils;
 
+import acceso.dam.mongocrud_acilleruelosinovas.domain.Coche;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
 import java.util.regex.Pattern;
 
 /**
@@ -37,5 +41,32 @@ public class Validador {
         // Expresión regular para el formato NNNNXXX (4 dígitos seguidos de 3 letras)
         String regexMatricula = "^[0-9]{4}[A-Z]{3}$";
         return validarTextoNoVacio(matricula) && Pattern.matches(regexMatricula, matricula);
+    }
+
+
+    /**
+     * Valida si una matrícula específica existe en la base de datos.
+     *
+     * @param matricula La matrícula del coche a verificar.
+     * @param session La sesión de Hibernate utilizada para la consulta.
+     * @return {@code true} si el coche existe en la base de datos, {@code false} en caso contrario.
+     */
+    public static boolean validarCocheExistente(String matricula, Session session) {
+        Transaction transaction = null;
+        Coche coche = null;
+        try {
+            transaction = session.beginTransaction();
+            coche = (Coche) session.createQuery("FROM Coche WHERE matricula = :matricula", Coche.class)
+                    .setParameter("matricula", matricula)
+                    .uniqueResult();
+            transaction.commit();
+            System.out.println(coche);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            if(transaction != null)
+                transaction.rollback();
+        }
+
+        return coche != null;
     }
 }

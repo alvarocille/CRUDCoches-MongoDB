@@ -48,4 +48,15 @@ public class R {
     public static URL getUI(String name) {
         return Thread.currentThread().getContextClassLoader().getResource("ui" + File.separator + name);
     }
+
+    /**
+     * Obtiene una {@code URL} para el archivo de configuración de Hibernate ubicado en su directorio.
+     *
+     * @param name el nombre del recurso de Hibernate a obtener.
+     * @return una {@code URL} que representa el recurso solicitado,
+     *         o {@code null} si no se encuentra el recurso.
+     */
+    public static URL getHibernate(String name) {
+        return Thread.currentThread().getContextClassLoader().getResource("configuration" + File.separator + name);
+    }
 }

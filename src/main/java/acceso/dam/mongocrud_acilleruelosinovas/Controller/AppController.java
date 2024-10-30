@@ -2,9 +2,8 @@ package acceso.dam.mongocrud_acilleruelosinovas.Controller;
 
 import acceso.dam.mongocrud_acilleruelosinovas.DAO.CocheDAO;
 import acceso.dam.mongocrud_acilleruelosinovas.Utils.AlertUtils;
-import acceso.dam.mongocrud_acilleruelosinovas.Utils.DBManager;
+import acceso.dam.mongocrud_acilleruelosinovas.Utils.HibernateUtil;
 import acceso.dam.mongocrud_acilleruelosinovas.domain.Coche;
-import com.mongodb.MongoException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -12,13 +11,14 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 
 import java.util.List;
 import java.util.Optional;
 
 import static acceso.dam.mongocrud_acilleruelosinovas.Utils.AlertUtils.*;
-import static acceso.dam.mongocrud_acilleruelosinovas.Utils.Validador.validarMatricula;
-import static acceso.dam.mongocrud_acilleruelosinovas.Utils.Validador.validarTextoNoVacio;
+import static acceso.dam.mongocrud_acilleruelosinovas.Utils.Validador.*;
 
 /**
  * El controlador principal de la aplicación que gestiona la interacción de la interfaz de usuario
@@ -42,18 +42,19 @@ public class AppController {
     @FXML
     private ComboBox<String> tipoComboBox;
 
+    SessionFactory factory = HibernateUtil.getSessionFactory();
+    Session session = HibernateUtil.getSession();
     private final CocheDAO cocheDAO;
     private Coche cocheSeleccionado;
     private boolean editando = false;
+    private boolean ejemplo = true; // Decide si CREA (true) o NO (false) datos de ejemplo
 
     /**
      * Constructor del controlador, que inicializa la instancia de {@link CocheDAO}
      * para interactuar con la base de datos.
-     *
-     * @param dbmanager El manejador de la conexión a la base de datos.
      */
-    public AppController(DBManager dbmanager) {
-        cocheDAO = new CocheDAO(dbmanager);
+    public AppController() {
+        cocheDAO = new CocheDAO();
     }
 
     private enum Accion {
@@ -90,8 +91,10 @@ public class AppController {
      */
     public void cargarCoches() {
         try {
-            ObservableList<Coche> coches = FXCollections.observableArrayList(cocheDAO.obtenerTodosLosCoches());
-            if (coches.isEmpty()) {
+            session.clear();
+            ObservableList<Coche> coches = FXCollections.observableArrayList(cocheDAO.obtenerTodosLosCoches(session));
+            if (coches.isEmpty() && ejemplo) {
+                this.ejemplo = false;
                 generarDatos();
                 cargarCoches();
             } else {
@@ -122,7 +125,7 @@ public class AppController {
      */
     private void cargarTipos() {
         try {
-            List<String> tipos = cocheDAO.getTipos();
+            List<String> tipos = cocheDAO.getTipos(session);
             tipoComboBox.getItems().clear();
             tipoComboBox.getItems().addAll(tipos);
         } catch (Exception e) {
@@ -198,7 +201,7 @@ public class AppController {
                 return;
         }
 
-        cocheDAO.deleteCoche(coche);
+        cocheDAO.deleteCoche(coche.getId(), session);
         mostrarConfirmacion("Coche eliminado con éxito");
         cargarCoches();
         limpiarDatos();
@@ -236,6 +239,8 @@ public class AppController {
      */
     @FXML
     public void guardarCoche(Event event) {
+        int id = cocheSeleccionado != null && accion == Accion.MODIFICAR ? cocheSeleccionado.getId() : 0;
+
         String matricula = matriculaField.getText();
         if (!validarTextoNoVacio(matricula)) {
             mostrarError("La matrícula es un campo obligatorio.");
@@ -243,6 +248,13 @@ public class AppController {
         } else if (!validarMatricula(matricula)) {
             mostrarError("La matrícula debe tener el formato 'NNNNXXX', donde N es un dígito y X es una letra.");
             return;
+        }
+
+        if ((!cocheSeleccionado.getMatricula().equals(matricula) && accion == Accion.MODIFICAR) || Accion.NUEVO == accion) {
+            if (validarCocheExistente(matricula, session)) {
+                mostrarError("La matrícula introducida ya existe en la base de datos.");
+                return;
+            }
         }
 
         String marca = marcaField.getText();
@@ -261,14 +273,14 @@ public class AppController {
             mostrarAviso("Se va a registrar el coche sin tipo.");
         }
 
-        Coche coche = new Coche(matricula, marca, modelo, tipo);
+        Coche coche = new Coche(id, matricula, marca, modelo, tipo);
 
         try {
             switch (accion) {
-                case NUEVO -> cocheDAO.insertCoche(coche);
-                case MODIFICAR -> cocheDAO.updateCoche(cocheSeleccionado, coche);
+                case NUEVO -> cocheDAO.insertCoche(coche, session);
+                case MODIFICAR -> cocheDAO.updateCoche(coche, session);
             }
-        } catch (MongoException e) {
+        } catch (Exception e) {
             AlertUtils.mostrarError("Error al guardar el coche: " + e.getMessage());
         }
 
@@ -292,16 +304,16 @@ public class AppController {
             Coche coche9 = new Coche("9911FFG", "Volkswagen", "Touran", "Monovolumen");
             Coche coche10 = new Coche("8855GFR", "Renault", "Scenic", "Monovolumen");
 
-            cocheDAO.insertCoche(coche1);
-            cocheDAO.insertCoche(coche2);
-            cocheDAO.insertCoche(coche3);
-            cocheDAO.insertCoche(coche4);
-            cocheDAO.insertCoche(coche5);
-            cocheDAO.insertCoche(coche6);
-            cocheDAO.insertCoche(coche7);
-            cocheDAO.insertCoche(coche8);
-            cocheDAO.insertCoche(coche9);
-            cocheDAO.insertCoche(coche10);
+            cocheDAO.insertCoche(coche1, session);
+            cocheDAO.insertCoche(coche2, session);
+            cocheDAO.insertCoche(coche3, session);
+            cocheDAO.insertCoche(coche4, session);
+            cocheDAO.insertCoche(coche5, session);
+            cocheDAO.insertCoche(coche6, session);
+            cocheDAO.insertCoche(coche7, session);
+            cocheDAO.insertCoche(coche8, session);
+            cocheDAO.insertCoche(coche9, session);
+            cocheDAO.insertCoche(coche10, session);
         } catch (Exception e) {
             System.err.println("Error al insertar los coches: " + e.getMessage());
         }
